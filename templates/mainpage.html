@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/bootstrap.min.css">
+    <script src="../static/jquery-3.6.2.min.js"></script>
+    <script src="../static/bootstrap.min.js"></script>
+    <script src="../static/axios.min.js"></script>
+    <title>tasks management</title>
+</head>
+
+<body>
+    <section class="vh-100" style="background-color:rgba(132, 250, 176, 0.5);">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col col-lg-9 col-xl-7">
+                    <div class="card rounded-3">
+                        <div class="card-body p-4">
+
+                            <h4 class="text-center my-3 pb-3">Tasks</h4>
+
+                            <div class="row row-cols-lg-auto g-3 justify-content-center align-items-center mb-4 pb-2">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" id="taskname" placeholder="Task name">
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" id="taskdescription"
+                                            placeholder="Task description">
+                                    </div>
+                                    <div class="mb-3" id="tags">
+                                        <input type="radio" class="btn-check" name="options" id="option1"
+                                            autocomplete="off" checked>
+                                        <label class="btn btn-secondary" for="option1">Important</label>
+
+                                        <input type="radio" class="btn-check" name="options" id="option2"
+                                            autocomplete="off">
+                                        <label class="btn btn-secondary" for="option2">Optional</label>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <button class="btn btn-primary" onclick="addTaskToDatabase()">Add</button>
+                                </div>
+
+                                <div class="col-12">
+                                    <button class="btn btn-warning" onclick="getTasks()">Get tasks</button>
+                                </div>
+                            </div>
+
+                            <table class="table mb-4">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">No.</th>
+                                        <th scope="col">Task</th>
+                                        <th scope="col">description</th>
+                                        <th scope="col">Tags</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tasks-list">
+
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let i = 0;
+        user = localStorage.getItem('logged_username');
+        let getTasks = () => {
+            axios({
+                method: 'get',
+                url: '/tasks/getall'
+            }).then(function (response) {
+                tasks = JSON.parse(JSON.stringify(response.data))
+                if (tasks.length != 0) {
+                    for (i = 0; i < tasks.length; i++) {
+                        if (tasks[i].assignee == user) {
+                            let task = `
+                                <tr id=${i}>
+                                <th scope="row">${i}</th>
+                                <td>${tasks[i].name}</td>
+                                <td>${tasks[i].description}</td>
+                                <td>        
+                                <button type="submit" class="btn btn-danger" id=${i}>Delete</button>
+                                <button type="submit" class="btn btn-success ms-1">${tasks[i].tag}</button>
+                                </td>
+                                </tr>
+                            `
+                            console.log(tasks[i].assignee, user)
+                            document.getElementById('tasks-list').innerHTML += task
+                        }
+                    }
+                }
+            })
+        }
+
+        // let addTaskToList = () => {
+
+        //     let task_tag = document.getElementById('tags').value;
+        //     let task_id = 0
+        //     if (document.getElementById('option2').checked) {
+
+        //     }
+        //     let task = `
+        //     <tr id=${task_id}>
+        //         <th scope="row">${task_id}</th>
+        //         <td>${task_name}</td>
+        //         <td>${task_description}</td>
+        //         <td>
+        //             <button type="submit" class="btn btn-danger">Delete</button>
+        //         </td>
+        //         <td>
+        //             <button type="submit" class="btn btn-success ms-1">Important</button>    
+        //         </td>
+        //     </tr>
+        //     `
+        //     document.getElementById('tasks-list').innerHTML += task;
+        //     addTaskToDatabase()
+        // }
+
+        let addTaskToDatabase = () => {
+            let task_name = document.getElementById('taskname').value;
+            let task_description = document.getElementById('taskdescription').value;
+            let tags = document.getElementById('tags').value;
+            let tag_id = 0
+            if (document.getElementById('option2').checked) {
+                tag_id = 1
+            }
+            axios({
+                method: 'get',
+                url: '/tasks/getall'
+            }).then(function (response) {
+                tasks = JSON.parse(JSON.stringify(response.data))
+                if (tasks.length == 0) {
+                    axios({
+                        method: 'post',
+                        url: '/tasks/add',
+                        data: {
+                            key: 0,
+                            name: task_name,
+                            description: task_description,
+                            assignee_key: localStorage.getItem('logged_username_id'),
+                            tag_key: `${tag_id}`
+                        }
+                    }).then(function (response) {
+                        let task = `
+                        <tr id=${response._key}>
+                            <th scope="row">${response._key}</th>
+                            <td>${task_name}</td>
+                            <td>${task_description}</td>
+                            <td>
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-success ms-1">${response.tag}</button>    
+                            </td>
+                        </tr>`
+                        document.getElementById('tasks-list').innerHTML += task;
+                    })
+                }
+                else {
+                    axios({
+                        method: 'post',
+                        url: '/tasks/add',
+                        data: {
+                            key: `${tasks.length}`,
+                            name: task_name,
+                            description: task_description,
+                            assignee_key: localStorage.getItem('logged_username_id'),
+                            tag_key: `${tag_id}`
+                        }
+                    }).then(function (response) {
+                        let task = `
+                        <tr id=${response.key}>
+                            <th scope="row">${response._key}</th>
+                            <td>${task_name}</td>
+                            <td>${task_description}</td>
+                            <td>
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-success ms-1">${response.tag}</button>    
+                            </td>
+                        </tr>`
+                        document.getElementById('tasks-list').innerHTML += task;
+                    })
+                }
+            })
+        }
+    </script>
+</body>
+
+</html>

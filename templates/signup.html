@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/bootstrap.min.css">
+    <script src="../static/axios.min.js"></script>
+    <title>Signup</title>
+    <style>
+        .gradient-custom-3 {
+            background: #84fab0;
+            background: -webkit-linear-gradient(to right, rgba(132, 250, 176, 0.5), rgba(143, 211, 244, 0.5));
+            background: linear-gradient(to right, rgba(132, 250, 176, 0.5), rgba(143, 211, 244, 0.5))
+        }
+        .gradient-custom-4 {
+            background: #84fab0;
+            background: -webkit-linear-gradient(to right, rgba(132, 250, 176, 1), rgba(143, 211, 244, 1));
+            background: linear-gradient(to right, rgba(132, 250, 176, 1), rgba(143, 211, 244, 1))
+        }
+    </style>
+</head>
+  <section class="vh-100 bg-image" style="background-color:rgba(132, 250, 176, 0.5)">
+  <div class="mask d-flex align-items-center h-100 gradient-custom-3">
+    <div class="container h-100">
+      <div class="row d-flex justify-content-center align-items-center h-100">
+        <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+          <div class="card" style="border-radius: 15px;">
+            <div class="card-body p-5">
+              <h2 class="text-uppercase text-center mb-5">Create an account</h2>
+
+              <div>
+                <div class="form-outline mb-4">
+                  <input type="text" class="form-control form-control-lg" id="firstname" required/>
+                  <label class="form-label" for="form3Example1cg" >First name</label>
+                </div>
+
+                <div class="form-outline mb-4">
+                  <input type="text" class="form-control form-control-lg"  id="lastname" required/>
+                  <label class="form-label" for="form3Example1cg" >Last name</label>
+                </div>
+
+                <div class="form-outline mb-4">
+                  <input type="text" class="form-control form-control-lg" id="username" required/>
+                  <label class="form-label" for="form3Example1cg" >Username</label>
+                </div>
+
+                <div class="form-outline mb-4">
+                  <input type="email" class="form-control form-control-lg" id="email" required/>
+                  <label class="form-label" for="form3Example3cg" >Your Email</label>
+                </div>
+
+                <div class="form-outline mb-4">
+                  <input type="password" class="form-control form-control-lg" id="password" required/>
+                  <label class="form-label" for="form3Example4cg" >Password</label>
+                </div>
+
+                <div class="d-flex justify-content-center">
+                  <button type="button" class="btn btn-success btn-block btn-lg gradient-custom-4 text-body" onclick="register()">Register</button>
+                </div>
+
+                <p class="text-center text-muted mt-5 mb-0">Have already an account? <a href="#!" class="fw-bold text-body"><u>Login here</u></a></p>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  let i = 0;
+  let users = [];
+  let register = () => {
+    // let user_id = count++;
+    let firstname = document.getElementById('firstname').value;
+    let lastname = document.getElementById('lastname').value;
+    let username = document.getElementById('username').value;
+    let email = document.getElementById('email').value;
+    let password = document.getElementById('password').value;
+
+    axios({
+      method:'get',
+      url:'/users/getall'
+    }).then(function (response) {
+      users = JSON.parse(JSON.stringify(response.data))
+      if (users.length != 0) {
+        for (i=0; i<users.length; i++) {
+        if (username==users[i].username || email==users[i].email) {
+            console.log("user should have unique username and unique email")
+            return 0
+          }
+        }
+      }
+      axios({
+          method: 'post',
+          url: '/users/add',
+          data: {
+            key:i,
+            firstname: firstname,
+            lastname: lastname,
+            username:username,
+            email:email,
+            password:password
+        }
+      }).then(function (response) {
+        localStorage.setItem('logged_username', username)
+        console.log(`user ${username} is logged in.`)
+        location.replace("http://127.0.0.1:5000/main")
+      })
+    })
+  }
+</script>
+</body>
+</html>
